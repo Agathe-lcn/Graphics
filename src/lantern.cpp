@@ -76,10 +76,14 @@ void Lantern::setupMesh() {
 void Lantern::setupTexture() {
     unsigned char data[256 * 256 * 4];
     for (int i = 0; i < 256 * 256; i++) {
-        data[i * 4 + 0] = 255;
-        data[i * 4 + 1] = 200;
-        data[i * 4 + 2] = 150;
-        data[i * 4 + 3] = 200;
+        int x = i%256;
+        int y = i/256;
+        unsigned char variation = (x ^ y) & 0x3F;
+
+        data[i * 4 + 0] = 255 - variation;  // R
+        data[i * 4 + 1] = 235 - variation;  // G
+        data[i * 4 + 2] = 200 - variation;  // B
+        data[i * 4 + 3] = 220;  // A (semi-transparent)
     }
     
     glGenTextures(1, &textureID);
