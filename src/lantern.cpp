@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
+#include <cmath>
 
 float vertices[] = {
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
@@ -74,28 +75,62 @@ void Lantern::setupMesh() {
 }
 
 void Lantern::setupTexture() {
-    unsigned char data[256 * 256 * 4];
-    for (int i = 0; i < 256 * 256; i++) {
-        int x = i%256;
-        int y = i/256;
-        unsigned char variation = (x ^ y) & 0x3F;
-
-        data[i * 4 + 0] = 255 - variation;  // R
-        data[i * 4 + 1] = 235 - variation;  // G
-        data[i * 4 + 2] = 200 - variation;  // B
-        data[i * 4 + 3] = 220;  // A (semi-transparent)
+    int size = 512;
+    unsigned char* data = new unsigned char[size * size * 4];
+    
+    for (int y = 0; y < size; y++) {
+        for (int x = 0; x < size; x++) {
+            int i = (y * size + x) * 4;
+            
+            float u = (float)x / size;
+            float v = (float)y / size;
+            
+            // Base orange
+            int r = 255;
+            int g = 165;
+            int b = 0;
+            
+            // Vertical stripes
+            bool verticalStripe = (u > 0.2f && u < 0.25f) || 
+                                  (u > 0.4f && u < 0.45f) ||
+                                  (u > 0.6f && u < 0.65f) ||
+                                  (u > 0.8f && u < 0.85f);
+            
+            // Horizontal stripes
+            bool topBand = v < 0.15f;
+            bool bottomBand = v > 0.85f;
+            bool middleBand = (v > 0.45f && v < 0.55f);
+            
+            // Border
+            bool isBorder = (u < 0.05f) || (u > 0.95f) || (v < 0.05f) || (v > 0.95f);
+            
+            if (isBorder) {
+                r = 80; g = 40; b = 20;
+            }
+            else if (verticalStripe || topBand || bottomBand || middleBand) {
+                r = 139; g = 69; b = 19;
+            }
+            
+            data[i+0] = (unsigned char)r;
+            data[i+1] = (unsigned char)g;
+            data[i+2] = (unsigned char)b;
+            data[i+3] = 220;
+        }
     }
     
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size, size, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    
+    delete[] data;
 }
+
 
 void Lantern::update(float deltaTime) {
     position.y += speed * deltaTime;
