@@ -20,11 +20,11 @@ include_directories(src/
                     ${GLM_INCLUDE_DIRS})
 
 file(GLOB_RECURSE PROJECT_SOURCES src/*.cpp)
-file(GLOB VENDOR_SOURCES lib/glad/src/glad.c)
+file(GLOB         VENDOR_SOURCES  lib/glad/src/glad.c)
 file(GLOB_RECURSE PROJECT_SHADERS res/shaders/*.vert res/shaders/*.frag)
 
-add_executable(${PROJECT_NAME} 
-    ${PROJECT_SOURCES} 
+add_executable(${PROJECT_NAME}
+    ${PROJECT_SOURCES}
     ${VENDOR_SOURCES}
     ${PROJECT_SHADERS}
 )
